@@ -1,0 +1,98 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>Ajouter un nouveau produit
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.add_product') }}" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label fw-bold") }}
+                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="Nom du produit") }}
+                            {% for error in form.name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.price.label(class="form-label fw-bold") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">Dh</span>
+                                    {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), placeholder="0.00", step="0.01") }}
+                                </div>
+                                {% for error in form.price.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.stock.label(class="form-label fw-bold") }}
+                                {{ form.stock(class="form-control" + (" is-invalid" if form.stock.errors else ""), placeholder="Quantité disponible") }}
+                                {% for error in form.stock.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label fw-bold") }}
+                            {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="4", placeholder="Description détaillée du produit...") }}
+                            {% for error in form.description.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Image du produit -->
+                        <div class="mb-4">
+                            <label for="image" class="form-label fw-bold">Image du produit</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <div class="form-text">Format recommandé : JPEG/PNG, 800x800px</div>
+                        </div>
+                        
+                        <!-- Boutons de soumission -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('admin.product_list')}}" class="btn btn-outline-secondary me-md-2">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('image').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let preview = document.getElementById('image-preview');
+                if (!preview) {
+                    preview = document.createElement('div');
+                    preview.id = 'image-preview';
+                    preview.className = 'mt-3 text-center';
+                    preview.innerHTML = '<h6 class="fw-bold">Aperçu</h6><img class="img-thumbnail" style="max-height: 200px">';
+                    document.querySelector('.card-body').appendChild(preview);
+                }
+                preview.querySelector('img').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}
