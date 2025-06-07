@@ -50,6 +50,7 @@ class ProductController:
             error_out=False
         )
     
+    
     @staticmethod
     def get_product_by_id(product_id):
         return Product.query.get_or_404(product_id)

@@ -1,0 +1,99 @@
+{% extends 'index.html' %}
+
+
+{% block content %}
+        <h2 class="mb-4">Nos produits phares</h2>
+        
+        <div class="row">
+            
+            {% for product in  products%}
+                <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card product-card h-100">
+                    {% if product.image_url %}
+                        <img src="{{ product.image_url }}" 
+                            alt="{{ product.name }}" 
+                            class="card-img-top product-img"                            
+                            style="max-height: 300px;">
+                    {% else %}
+                        <div class="no-image-placeholder text-muted py-5">
+                        <i class="bi bi-image" style="font-size: 5rem;"></i>
+                        <p class="mt-2">Aucune image disponible</p>
+                        </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{product.name}}</h5>
+                        <p class="text-muted">{{ product.description[:100] }}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-danger fw-bold">{{product.price}} Dh</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+                
+        </div>
+        
+        <!-- Section promotions 
+        <div class="mt-5 pt-4 border-top">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Promotions</h2>
+                <a href="#" class="btn btn-outline-primary">Voir tout</a>
+            </div>
+            
+            <div class="row">
+                 Produit en promotion 1 
+                <div class="col-md-3 col-sm-6">
+                    <div class="card product-card h-100">
+                        <span class="badge badge-sale">-50%</span>
+                        <img src="https://via.placeholder.com/300" class="card-img-top product-img" alt="Produit">
+                        <div class="card-body">
+                            <h5 class="card-title">Tablette 10"</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-danger fw-bold">€199.99</span>
+                                    <span class="text-decoration-line-through text-muted ms-2">€399.99</span>
+                                </div>
+                                <button class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div> -->
+    <!-- Pagination -->
+    <nav>
+        <ul class="pagination">
+            {% if products.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.home', page=products.prev_num) }}">Précédent</a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in products.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=3) %}
+            {% if page_num %}
+            <li class="page-item {% if page_num == products.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('main.home', page=page_num) }}">{{ page_num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if products.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.home', page=products.next_num) }}">Suivant</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock content %}
+    

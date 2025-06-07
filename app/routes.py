@@ -9,9 +9,6 @@ from app.forms import ProductForm
 main_routes = Blueprint("main", __name__)
 admin_bp = Blueprint("admin", __name__, url_prefix='/admin')
 
-@main_routes.route('/')
-def home():
-    return render_template("index.html")
 
 @admin_bp.route('/')
 #@login_required
@@ -112,4 +109,11 @@ def list_user():
     page = request.args.get("page", 1, type=int)
     return render_template("admin/users.html", users=UserController.get_all_user(page=page))
 
-    
+# +++++++++++++++++++++++++ Interface Client
+
+
+@main_routes.route('/')
+def home():
+    page = request.args.get("page", 1, type=int)     
+    return render_template("list_product.html", products=ProductController.get_all_products(page=page))
+
