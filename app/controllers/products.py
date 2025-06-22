@@ -1,8 +1,8 @@
 from werkzeug.utils import secure_filename
 import os
-from flask import current_app
+from flask import current_app, request, redirect, url_for
 from app import db
-from app.models import Product
+from app.models import Product, OrderItem
 
 class ProductController:
     
@@ -26,20 +26,17 @@ class ProductController:
             current_app.logger.error(f"Error creating product: {str(e)}")
             raise e
     
-    @staticmethod
     def _handle_image_upload(file):
         if file and file.filename != '':
-            filename = secure_filename(file.filename)
-            
-            upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'products')
-            os.makedirs(upload_dir, exist_ok=True)
-            
-            filepath = os.path.join(upload_dir, filename)
-            
-            file.save(filepath)
-            
-            return filename
+            if file.mimetype.startswith("image/"):
+                filename = secure_filename(file.filename)
+                upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'products')
+                os.makedirs(upload_dir, exist_ok=True)
+                filepath = os.path.join(upload_dir, filename)
+                file.save(filepath)
+                return filename
         return None
+
 
     
     @staticmethod
@@ -50,7 +47,6 @@ class ProductController:
             error_out=False
         )
     
-    
     @staticmethod
     def get_product_by_id(product_id):
         return Product.query.get_or_404(product_id)
@@ -59,11 +55,13 @@ class ProductController:
     @property
     def image_url(self):
         if self.image:
-            return f"/static/uploads/products/{self.image}"
-        return None
+            image_path = os.path.join(current_app.root_path, 'static', 'uploads', 'products', self.image)
+            if os.path.exists(image_path):
+                return f"/static/uploads/products/{self.image}"
+        return url_for('static', filename='img/no-image.png')
     
     @staticmethod
-    def edit_prodcut(product_id,form_data, image_file = None):
+    def edit_product(product_id,form_data, image_file = None):
         try:
             product = Product.query.get(product_id)
             if not product:
@@ -97,3 +95,35 @@ class ProductController:
             
         except Exception as e:
             raise e
+        
+        
+    
+    @staticmethod
+    def get_similar_products(product, category_id, limit=4):
+        return Product.query.filter(
+            Product.id != product.id,
+            Product.category_id == category_id  
+        ).limit(limit).all()
+    
+    @staticmethod
+    def get_by_categorie(id):
+        return (
+            Product.query.filter_by(category_id=id).first()
+        )
+        
+    @staticmethod
+    def search_products(data):
+        return  Product.query.filter(
+            (Product.name.ilike(f'%{data}%')) | 
+            (Product.description.ilike(f'%{data}%'))
+            ).all()
+        
+    @staticmethod
+    def searchByCategori(keyword):
+        results = Product.query.join(Product.category).filter(
+            or_(
+                Product.name.ilike(f'%{keyword}%'),
+                Product.description.ilike(f'%{keyword}%'),
+                Product.category.has(Category.name.ilike(f'%{keyword}%'))
+            )
+        ).all()

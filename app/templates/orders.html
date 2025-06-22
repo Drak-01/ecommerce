@@ -1,0 +1,233 @@
+{% extends 'index.html' %}
+
+{% block title %}Mes Commandes{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    {% if orders %}
+        <h1 class="mb-4 fw-bold">Mes Commandes</h1>
+        
+        {% for order in orders %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-{{ 'success' if order.status == 'completed' else 'warning' }} rounded-pill me-2">
+                            {{ order.status|capitalize }}
+                        </span>
+                    </div>
+                    <small class="text-muted">{{ order.created_at.strftime('%d/%m/%Y à %H:%M') }}</small>
+                </div>
+                
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 80px">Image</th>
+                                    <th>Produit</th>
+                                    <th class="text-end">Prix</th>
+                                    <th class="text-center" style="width: 150px;">Quantité</th>
+                                    <th class="text-end">Total</th>
+                                    <th style="width: 120px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items %}
+                                    <tr data-item-id="{{ item.id }}">
+                                        <td>
+                                            <div class="ratio ratio-1x1 bg-light rounded-2 overflow-hidden" style="max-width: 60px;">
+                                                {% if item.product.image_url %}
+                                                    <img src="{{ item.product.image_url }}" 
+                                                        alt="{{ item.product.name }}"
+                                                        class="img-cover">
+                                                {% else %}
+                                                    <div class="d-flex justify-content-center align-items-center h-100">
+                                                        <i class="bi bi-image text-muted"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <h6 class="mb-0">{{ item.product.name }}</h6>
+                                            {% if item.product.stock <= 0 %}
+                                                <small class="text-danger">Rupture de stock</small>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end item-price" data-price="{{ item.product.price }}">
+                                            {{ "%.2f"|format(item.product.price) }} Dh
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                                <button class="btn btn-sm btn-outline-secondary px-2 py-0" 
+                                                        onclick="updateQuantity({{ item.id }}, -1)">
+                                                    <i class="bi bi-dash"></i>
+                                                </button>
+                                                <span class="quantity">{{ item.quantity }}</span>
+                                                <button class="btn btn-sm btn-outline-secondary px-2 py-0" 
+                                                        onclick="updateQuantity({{ item.id }}, 1)">
+                                                    <i class="bi bi-plus"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="text-end line-total">
+                                            {{ "%.2f"|format(item.product.price * item.quantity) }} Dh
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="removeItem({{ item.id }})">
+                                                <i class="bi bi-trash"></i> Supprimer
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <div>
+                            <button class="btn btn-outline-secondary me-2">
+                                <i class="bi bi-printer"></i> Imprimer
+                            </button>
+                            <button class="btn btn-outline-primary">
+                                <i class="bi bi-arrow-repeat"></i> Commander à nouveau
+                            </button>
+                        </div>
+                        <div class="text-end">
+                            <h4 class="mb-0">Total: <span class="text-primary order-total" data-order-id="{{ order.id }}">{{ "%.2f"|format(order.total) }} Dh</span></h4>
+                            {% if order.status == 'pending' %}
+                                <button class="btn btn-success mt-2">
+                                    <i class="bi bi-credit-card"></i> Payer maintenant
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-5">
+            <div class="card shadow-sm">
+                <div class="card-body py-5">
+                    <i class="bi bi-cart-x fs-1 text-muted mb-3"></i>
+                    <h3 class="mb-3">Vous n'avez aucune commande</h3>
+                    <p class="text-muted mb-4">Vos commandes apparaîtront ici lorsque vous passerez une commande.</p>
+                    <a href="{{ url_for('main_routes.products') }}" class="btn btn-primary px-4">
+                        <i class="bi bi-bag me-2"></i>Découvrir nos produits
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Fonction pour mettre à jour la quantité
+async function updateQuantity(itemId, change) {
+    try {
+        const quantityElement = document.querySelector(`tr[data-item-id="${itemId}"] .quantity`);
+        const originalQuantity = quantityElement.textContent;
+        quantityElement.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`;
+        
+        const response = await fetch(`/order/update-item/${itemId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ change: change })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            quantityElement.textContent = originalQuantity;
+            throw new Error(data.message || 'Erreur lors de la mise à jour');
+        }
+
+        quantityElement.textContent = data.new_quantity;
+        
+        document.querySelector(`tr[data-item-id="${itemId}"] .line-total`).textContent = 
+            data.line_total.toFixed(2) + ' Dh';
+        
+        document.querySelector(`.order-total[data-order-id="${data.order_id}"]`).textContent = 
+            data.order_total.toFixed(2) + ' Dh';
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Quantité mise à jour',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: error.message
+        });
+    }
+}
+
+// Fonction pour supprimer un article
+async function removeItem(itemId) {
+    try {
+        const result = await Swal.fire({
+            title: 'Confirmer la suppression',
+            text: "Êtes-vous sûr de vouloir supprimer cet article ?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Oui, supprimer',
+            cancelButtonText: 'Annuler'
+        });
+
+        if (!result.isConfirmed) return;
+
+        const response = await fetch(`/order/remove-item/${itemId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Erreur lors de la suppression');
+
+        document.querySelector(`tr[data-item-id="${itemId}"]`).remove();
+        
+        if (data.order_total !== undefined) {
+            document.querySelector(`.order-total[data-order-id="${data.order_id}"]`).textContent = 
+                data.order_total.toFixed(2) + ' Dh';
+        }
+        
+        Swal.fire(
+            'Supprimé !',
+            'L\'article a été supprimé de votre commande.',
+            'success'
+        );
+        
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: error.message
+        });
+    }
+}
+</script>
+
+<style>
+.img-cover {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+.quantity {
+    min-width: 30px;
+    text-align: center;
+    display: inline-block;
+}
+</style>
+{% endblock %}

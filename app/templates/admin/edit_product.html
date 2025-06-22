@@ -1,6 +1,6 @@
 {% extends "admin/index.html" %}
 
-{% block content %}
+{% block contentAdmin %}
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -50,6 +50,16 @@
                             {% for error in form.description.errors %}
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category" class="form-label fw-bold">Catégorie</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="" disabled selected>Choisissez une catégorie</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         
                         <!-- Image du produit -->

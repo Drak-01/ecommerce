@@ -1,0 +1,125 @@
+{% extends "admin/index.html" %}
+
+{% block contentAdmin %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="bi bi-box-seam me-2"></i>Utilisateur infos
+                        </h3>
+                        <a href="{{ url_for('admin.list_user') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-left"></i> Retour
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <h2 class="mb-3"><span class="text-primary">Username :</span> {{ user.username }}</h2>
+                            <div class="row g-3 mb-3">
+                                <div class="col-ms-10 email">
+                                    <span class="text-primary email">Email : </span>{{ user.email}}
+                                </div>
+                                <div class="col-10 email">
+                                    <span class="text-primary email">
+                                        Status : 
+                                    </span>
+                                    {% if user.is_active %}
+                                        Enable
+                                    {% else %}
+                                        disable
+                                    {% endif %}
+                                    
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-muted">
+                                                <i class="bi bi-calendar me-2"></i>date d'inscription
+                                            </h6>
+                                            <p class="card-text">{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else 'N/A' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-muted">
+                                                <i class="bi bi-arrow-repeat me-2"></i>Dernière mise à jour
+                                            </h6>
+                                            <p class="card-text">{{ user.updated_at.strftime('%d/%m/%Y %H:%M') if user.updated_at else 'N/A' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <a href="" 
+                                   class="btn btn-warning flex-grow-1">
+                                    <i class="bi bi-pencil-square"></i> Modifier
+                                </a>
+                                <div class="flex-grow-1">
+                                    <button onclick="supprimer({{ user.id}})" id="supprimer" class="btn btn-danger w-100" data-user-id="{{user.id}}">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .email {
+        font-size: xx-large;
+    }
+</style>
+
+<script>
+
+    async function supprimer(id){
+        const result = await Swal.fire({
+                title: 'Confirmer la suppression',
+                text: "Êtes-vous sûr de vouloir supprimer cet Utilisateur ?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler'
+            });
+        if (!result.isConfirmed) return;  
+
+        const response = fetch(`/admin/user/details/delete/${id}`, {
+            method : 'DELETE',
+            headers : {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        });
+
+        const data = await response.json();
+        
+        if(response.ok){
+            Swal.fire({
+                    icon : 'success',
+                    title: 'Success',
+                    text: data.message,
+                    time : 1500
+                })
+                .then(() => 
+                    window.location.href = '{{ url_for("admin.list_user") }}');
+            
+        }
+    };
+</script>
+{% endblock %}

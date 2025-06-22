@@ -1,13 +1,12 @@
 {% extends "admin/index.html" %}
 
-{% block content %}
+{% block contentAdmin %}
 <div class="container">
     <h2 class="text-center text-primary">Liste des Produits</h2>
     
     <table class="table">
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Nom</th>
                 <th>Prix</th>
                 <th>Stock</th>
@@ -19,7 +18,6 @@
             {% if products %}
                 {% for product in products.items %}
                 <tr>
-                    <td>{{ product.id }}</td>
                     <td>{{ product.name }}</td>
                     <td>{{ product.price|float|round(2) }} €</td>
                     <td>{{ product.stock }}</td>

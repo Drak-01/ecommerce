@@ -1,0 +1,355 @@
+{% extends "admin/index.html" %}
+
+{% block contentAdmin %}
+<style>
+    /* Styles CSS organisés */
+    .stat-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    .stat-card .card-body {
+        position: relative;
+        z-index: 1;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.1;
+        z-index: 0;
+    }
+    .bg-primary::before { background: radial-gradient(circle at top right, #4e73df 0%, #224abe 100%); }
+    .bg-success::before { background: radial-gradient(circle at top right, #1cc88a 0%, #13855c 100%); }
+    .bg-info::before { background: radial-gradient(circle at top right, #36b9cc 0%, #258391 100%); }
+    .bg-warning::before { background: radial-gradient(circle at top right, #f6c23e 0%, #dda20a 100%); }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+    }
+    
+    .table-responsive { border-radius: 10px; overflow: hidden; }
+    .table { margin-bottom: 0; }
+    .table th { border-top: none; background-color: #f8f9fc; }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+    }
+    
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        transition: all 0.2s ease;
+    }
+    .list-group-item:hover { background-color: #f8f9fc; }
+    
+    .progress { height: 10px; border-radius: 5px; }
+    .progress-bar { background-color: #4e73df; }
+    
+    .top-product-img {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+    }
+    .status-completed { background-color: #1cc88a; }
+    .status-processing { background-color: #f6c23e; }
+    .status-pending { background-color: #e74a3b; }
+</style>
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard Overview</h1>
+        <!--
+        <div>
+            <a href="#" class="btn btn-sm btn-primary shadow-sm mr-2">
+                <i class="fas fa-download fa-sm text-white-50"></i> Generate Report
+            </a>
+            <a href="#" class="btn btn-sm btn-success shadow-sm">
+                <i class="fas fa-calendar fa-sm text-white-50"></i> Date Range
+            </a>
+        </div>-->
+    </div>
+
+    <div class="row">
+        <!-- Product Count Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Products</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ product_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.product_list')}}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Count Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Orders</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ order_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.list_order')}}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Count Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.list_user')}}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Revenue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ "%.2f"|format(total_revenue) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-7 mb-4">
+            <!-- Recent Orders Card -->
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Orders</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                            <div class="dropdown-header">Filter:</div>
+                            <a class="dropdown-item" href="#">Today</a>
+                            <a class="dropdown-item" href="#">This Week</a>
+                            <a class="dropdown-item" href="#">This Month</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('admin.list_order')}}">View All</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                    <tr>
+                                        <td>#{{ order.id }}</td>
+                                        <td>{{ order.user.username }}</td>
+                                        <td>{{ order.created_at.strftime('%d %b %Y') }}</td>
+                                        <td>${{ "%.2f"|format(order.total) }}</td>
+                                        <td>
+                                            <span class="badge status-badge status-{{ order.status }}">
+                                                {{ order.status|title }}
+                                            </span>
+                                        </td>
+                                        
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-5 mb-4">
+            <!-- Top Selling Products Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-success">Top Selling Products</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                            <div class="dropdown-header">Options:</div>
+                            <a class="dropdown-item" href="{{ url_for('admin.product_list')}}">View All Products</a>
+                            <a class="dropdown-item" href="#">Export Data</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for product in top_products %}
+                        <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    {% if product.image %}
+                                    <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" 
+                                         class="top-product-img me-3" alt="{{ product.name }}">
+                                    {% else %}
+                                    <div class="top-product-img bg-light rounded-circle me-3 d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-box text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-1">{{ product.name }}</h6>
+                                        <small class="text-muted">ID: {{ product.id }}</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold">${{ "%.2f"|format(product.price) }}</div>
+                                    <small class="text-success">{{ product.total_ordered }} sold</small>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ (product.total_ordered / max_ordered) * 100 }}%" 
+                                         aria-valuenow="{{ product.total_ordered }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="{{ max_ordered }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Products Card -->
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-danger">Low Stock Alert</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                            <div class="dropdown-header">Options:</div>
+                            <a class="dropdown-item" href="{{ url_for('admin.product_list')}}">View All Products</a>
+                            <a class="dropdown-item" href="#">Restock Alerts</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for product in low_stock_products %}
+                        <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ product.name }}</h6>
+                                    <small class="text-muted">ID: {{ product.id }}</small>
+                                </div>
+                                <span class="badge badge-pill badge-{{ 'warning' if product.stock > 0 else 'danger' }}">
+                                    {{ product.stock }} left
+                                </span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Card animation
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                card.style.transform = 'translateY(0)';
+            }, 300);
+        }, index * 100);
+    });
+
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    document.querySelectorAll('.voir').forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); 
+            const id = parseInt(this.getAttribute('data-id')); 
+            window.location.href = '/admin/order/details/' + id;
+        });
+    });
+</script>
+{% endblock %}

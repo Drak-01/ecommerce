@@ -1,7 +1,7 @@
 # app/forms.py
 from flask_wtf import FlaskForm
-from wtforms import StringField, DecimalField, TextAreaField, IntegerField, SubmitField
-from wtforms.validators import DataRequired, NumberRange
+from wtforms import StringField, DecimalField, TextAreaField, IntegerField, SubmitField, PasswordField, BooleanField, SelectField
+from wtforms.validators import DataRequired, NumberRange, Email, Length, EqualTo
 from flask_wtf.file import FileField, FileAllowed
 
 class ProductForm(FlaskForm):
@@ -24,5 +24,24 @@ class ProductForm(FlaskForm):
     image = FileField('Image du produit', validators=[
         FileAllowed(['jpg', 'png', 'jpeg'], 'Seules les images JPG/PNG sont autorisées')
     ])
+    category = SelectField('Catégorie', coerce=int)
     
     submit = SubmitField('Enregistrer')
+
+
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Mot de passe', validators=[DataRequired()])
+    remember = BooleanField('Se souvenir de moi')
+    submit = SubmitField('Se connecter')
+    
+class RegistrationForm(FlaskForm):
+    username = StringField('Nom utilisateur', validators=[DataRequired(), Length(min=3, max=30)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Mot de passe',validators=[DataRequired(),Length(min=8)]) 
+    confirm_password = PasswordField('Confirmer mot de passe',validators=[DataRequired(),EqualTo('password')])
+    submit = SubmitField("S'inscrire")
+    
+class CategoryForm (FlaskForm):
+    name = StringField("Catégories", validators=[DataRequired(), Length(min=3)])
+    submit = SubmitField("Enregistrer")

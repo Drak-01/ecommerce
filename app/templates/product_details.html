@@ -1,0 +1,175 @@
+{% extends 'index.html' %}
+
+{% block title %}Détails du produit - {{ product.name }}{% endblock %}
+
+{% block content %}
+    <div class="container mt-4 mb-5">
+        <div class="row g-4">
+            <!-- Colonne Image -->
+            <div class="col-lg-5">
+                <div class="product-image-container bg-light p-3 rounded-3 text-center shadow-sm h-100">
+                    {% if product.image_url %}
+                        <img src="{{ product.image_url }}" 
+                            alt="{{ product.name }}" 
+                            class="img-fluid rounded-2" 
+                            style="max-height: 450px; width: auto; object-fit: contain;">
+                    {% else %}
+                        <div class="no-image-placeholder text-muted d-flex flex-column justify-content-center align-items-center" style="height: 300px;">
+                            <i class="bi bi-image" style="font-size: 5rem;"></i>
+                            <p class="mt-2">Aucune image disponible</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Colonne Détails -->
+            <div class="col-lg-7">
+                <div class="product-details-container p-3 p-lg-4">
+                    <h1 class="mb-3 fw-bold">{{ product.name }}</h1>
+                    
+                    <!-- Prix et stock -->
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                        <span class="badge bg-primary rounded-pill fs-5 px-3 py-2">
+                            {{ product.price }} Dh
+                        </span>
+                        <span class="badge bg-{{ 'success' if product.stock > 0 else 'danger' }} rounded-pill fs-6 px-3 py-2">
+                            <i class="bi bi-{{ 'check-circle' if product.stock > 0 else 'x-circle' }} me-1"></i>
+                            {{ product.stock }} en stock
+                        </span>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <h4 class="text-muted mb-3 fs-5">Description</h4>
+                        <div class="lead" style="white-space: pre-line;">{{ product.description or "Aucune description disponible" }}</div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                        <button class="btn btn-primary btn-lg px-4 py-2 flex-grow-1 flex-md-grow-0"  onclick="add_order({{ product.id }})">
+                            <i class="bi bi-cart-plus me-2"></i>Ajouter au panier
+                        </button>
+                        <button class="btn btn-outline-secondary btn-lg px-4 py-2">
+                            <i class="bi bi-heart me-2"></i>Favoris
+                        </button>
+                    </div>
+
+                    <!-- Informations supplémentaires -->
+                    <div class="accordion mb-4" id="productAccordion">
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#productDetails">
+                                    <i class="bi bi-info-circle me-2"></i> Détails du produit
+                                </button>
+                            </h2>
+                            <!--
+                            <div id="productDetails" class="accordion-collapse collapse" data-bs-parent="#productAccordion">
+                                <div class="accordion-body pt-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-2"><strong><i class="bi bi-arrow-repeat me-2"></i>Dernière mise à jour :</strong></p>
+                                            <p>{{ product.updated_at.strftime('%d/%m/%Y %H:%M') if product.updated_at else 'N/A' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Produits similaires -->
+        {% if products_similaire %}
+            <div class="mt-5 pt-4 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Produits similaires</h3>
+                    <a href="" class="btn btn-sm btn-outline-primary">Voir tous les produits</a>
+                </div>
+                
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+        {% for product in products_similaire %}
+            <div data-item-id="{{ product.id}}" class="col product-card-col">
+                <div class="card product-card h-100 border-light">  
+                    <a href="{{ url_for('main.product_details', id=product.id, category_id=product.category_id)}}" class="d-block">
+                        {% if product.image_url %}
+                            <img src="{{ product.image_url }}" 
+                                alt="{{ product.name }}" 
+                                class="card-img-top product-img p-1"
+                                style="max-height: 300px; object-fit: contain;">
+                        {% else %}
+                            <div class="no-image-placeholder text-muted d-flex flex-column justify-content-center align-items-center py-3" style="height: 150px;">
+                                <i class="bi bi-image" style="font-size: 2rem;"></i>
+                                <p class="mt-1 small">Aucune image</p>
+                            </div>
+                        {% endif %}
+                    </a>
+                    
+                    <div class="card-body d-flex flex-column p-2 p-md-3">  
+                        <h5 class="card-title mb-1">{{ product.name }}</h5>  
+                        <p class="text-muted flex-grow-1 product-des small mb-2">{{ product.description[:80] }}{% if product.description|length > 80 %}...{% endif %}</p>  <!-- Texte raccourci -->
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto product-actions">
+                            <div>
+                                <span class="text-danger fw-bold product-price small">{{ product.price }} Dh</span>  
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary product-icon p-1" onclick="add_order({{ product.id }})"> 
+                                <i class="bi bi-cart-plus" style="font-size: 0.9rem;"></i>  
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <style>
+        .transition-hover:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+        .product-image-container {
+            position: sticky;
+            top: 20px;
+        }
+    </style>
+
+<script>
+    async function add_order(itemId){
+        try {
+            const productElement = document.querySelector(`div[data-item-id="${itemId}"]`);
+            
+            const response = await fetch(`/product/${itemId}`, {
+                method : 'POST',
+                headers: {
+                    'Content-type' : 'application/json',
+                    'X-CSRFToken' : '{{ csrf_token()}}'
+                }
+            });
+
+            const data = await response.json();
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: data.message,
+                timer: 1500
+            });
+
+        } catch (error) {  
+            Swal.fire({
+                icon: 'error',
+                title : 'Erreur',
+                text: error.message
+            });
+        }
+    }
+</script>
+{% endblock %}

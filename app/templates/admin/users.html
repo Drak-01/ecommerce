@@ -1,16 +1,15 @@
 {% extends 'admin/index.html' %}
 
-
-{% block content %}
+{% block contentAdmin %}
 <div class="container">
     <h2 class="text-center text-primary">Liste des Utilisateurs</h2>
     
     <table class="table">
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Username</th>
                 <th>Email</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -18,11 +17,11 @@
             {% if users %}
                 {% for user in users.items %}
                 <tr>
-                    <td>{{ user.id }}</td>
                     <td>{{ user.username }}</td>
-                    <td>{{ user.email }}</td>                
+                    <td>{{ user.email }}</td>   
+                    <td>{{ user.is_active }}</td>             
                     <td>
-                        <a href="" class="btn btn-info btn-sm">
+                        <a href="#" class="btn btn-sm btn-outline-primary voir" data-id="{{ user.id }}">
                             Voir
                         </a>
                     </td>
@@ -30,7 +29,7 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="6" class="text-center">Aucune Commande trouvé.</td>
+                    <td colspan="4" class="text-center">Aucun utilisateur trouvé.</td>
                 </tr>
             {% endif %}
         </tbody>
@@ -63,4 +62,14 @@
         </ul>
     </nav>
 </div>
-{% endblock %}%
+
+<script>
+    document.querySelectorAll('.voir').forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); 
+            const id = parseInt(this.getAttribute('data-id')); 
+            window.location.href = '/admin/user/details/' + id;
+        });
+    });
+</script>
+{% endblock %}
